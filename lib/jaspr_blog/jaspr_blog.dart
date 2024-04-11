@@ -4,6 +4,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
 import 'package:jaspr_blog/jaspr_blog/layouts/layout.dart';
+import 'package:jaspr_blog/jaspr_blog/layouts/layout_factory.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 import 'package:jaspr_blog/jaspr_blog/models/page_model.dart';
 import 'package:path/path.dart' as p;
@@ -14,24 +15,24 @@ class JasprBlog {
   final List<PageModel> pages = [];
   final List<StyleRule> styles = [];
   final _templateFactory = TemplateFactory();
+  final _layoutFactory = LayoutFactory();
 
-  void addTemplate(String template, TemplateBuilder builder) {
-    _templateFactory.register(template, builder);
+  void addTemplate(String name, TemplateBuilder builder) {
+    _templateFactory.register(name, builder);
   }
 
-  static Layout _buildDefaultLayout(
-      ConfigModel? config, List<Component> children) {
-    return Layout(config, null, children);
+  void addLayout(String name, LayoutBuilder builder) {
+    _layoutFactory.register(name, builder);
   }
 
-  LayoutBuilder _layoutBuilder = _buildDefaultLayout;
   void setDefaultLayout(LayoutBuilder layoutBuilder) {
-    _layoutBuilder = layoutBuilder;
+    _layoutFactory.setDefault(layoutBuilder);
   }
 
   Component _layout(PageModel page) {
-    var pageTemplate = _templateFactory.getInstance(page.layoutId, page);
-    var layout = _layoutBuilder(configModel, [pageTemplate]);
+    var pageTemplate = _templateFactory.getInstance(page.templateId, page);
+    var layout = _layoutFactory
+        .getInstance(page.layoutId, configModel!, null, [pageTemplate]);
     return layout;
   }
 
@@ -45,7 +46,15 @@ class JasprBlog {
         _generateFrom(child, baseDirectory);
       }
     }
-    pages.sort((a, b) => a.date?.compareTo(b.date ?? DateTime.now()) ?? -1);
+    pages.sort((a, b) {
+      if (a.date == null) {
+        return -1;
+      }
+      if (b.date == null) {
+        return 1;
+      }
+      return b.date!.compareTo(a.date!);
+    });
 
     this.pages.addAll(pages);
 

@@ -1,6 +1,6 @@
 ---
 title: "My First Post"
-date: 2024-04-19T12:00:00+00:00
+date: 2024-04-09T12:00:00+00:00
 author: "Nick"
 draft: false
 ---

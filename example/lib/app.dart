@@ -1,6 +1,8 @@
 import 'dart:io';
 
-import 'package:example/templates/custom_template.dart';
+import 'package:example/custom/hero.dart';
+import 'package:example/custom/preamble.dart';
+import 'package:example/custom/full_width.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
 import 'package:jaspr_router/jaspr_router.dart';
@@ -24,7 +26,15 @@ class _AppState extends State<App> with PreloadStateMixin {
     blog = JasprBlog();
     // blog.setDefaultLayout((config, components) =>
     //     CustomLayout(configModel: config, children: components));
-    blog.addTemplate("post", (page) => CustomPostTemplate(page));
+    blog.addTemplate("preamble", (page) => ExampleTemplateWithPreamble(page));
+    blog.addLayout(
+        "full-width",
+        (page, children) => ExampleFullWidthCustomLayout(
+            configModel: blog.configModel!, children: children));
+    blog.addLayout(
+        "hero",
+        (page, children) => ExampleHeroCustomLayout(
+            configModel: blog.configModel!, children: children));
     blog.generateFrom(Directory(p.join(Directory.current.path, "content")));
   }
 }

@@ -16,8 +16,8 @@ class TemplateFactory {
     if (builder != null) {
       return builder(model);
     }
-    if (model is IndexPageModel) {
-      return IndexTemplate(model);
+    if (model is PageIndexPageModel) {
+      return PageIndexTemplate(model);
     }
     return Template(model);
   }

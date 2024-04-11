@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 
 class PageModel {
   final String? layoutId;
+  final String? templateId;
   final String title;
   final String route;
   final Map<String, String>? metadata;
@@ -19,6 +20,7 @@ class PageModel {
       required this.markdown,
       this.metadata,
       this.layoutId,
+      this.templateId,
       this.date,
       this.blurb});
 
@@ -30,8 +32,21 @@ class PageModel {
     var split = content.split("---").skip(1).toList();
 
     var doc = loadYaml(split[0]);
+
+    var layoutId = doc["layout"];
+    var templateId = doc["template"] ?? p.basename(file.parent.path);
+
     var title = doc["title"];
-    var date = DateTime.now();
+    DateTime? date;
+    if (doc["date"] != null) {
+      try {
+        date = DateTime.parse(doc["date"]);
+      } catch (err) {
+        print("Error parsing date : $err");
+        // pass
+      }
+    }
+
     var markdown = split[1];
 
     var html = md.markdownToHtml(markdown);
@@ -46,12 +61,15 @@ class PageModel {
       "og:title": title.replaceAll("&quot;", "")
     };
 
-    var route = p.basename(file.path) == "index.md"
+    var route = doc["route"];
+
+    route ??= p.basename(file.path) == "index.md"
         ? "/"
         : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "");
 
     return PageModel(
-        layoutId: p.basename(file.parent.path),
+        layoutId: layoutId,
+        templateId: templateId,
         title: title,
         route: route,
         date: date,
@@ -68,14 +86,15 @@ class PageModel {
     var fullpath = directory.path.replaceAll(baseDirectory.path, "");
     var dirname = p.basename(directory.path);
     var title = dirname[0].toUpperCase() + dirname.substring(1);
-    return IndexPageModel(title: title, route: fullpath, children: children);
+    return PageIndexPageModel(
+        title: title, route: fullpath, children: children);
   }
 }
 
-class IndexPageModel extends PageModel {
+class PageIndexPageModel extends PageModel {
   final List<PageModel> children;
 
-  IndexPageModel(
+  PageIndexPageModel(
       {required this.children,
       required super.title,
       required super.route,

@@ -1,4 +1,6 @@
-import 'package:jaspr/jaspr.dart';
+import 'package:jaspr/jaspr.dart' hide footer;
+import 'package:jaspr/jaspr.dart' as jaspr;
+import 'package:jaspr_blog/jaspr_blog/layouts/bulma/navbar.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 
 typedef LayoutBuilder = Layout Function(ConfigModel?, List<Component> children);
@@ -10,59 +12,33 @@ class Layout extends StatelessComponent {
 
   Layout(this.configModel, this.id, this.children);
 
-  Component _header() {
-    return div(
-        styles: Styles.combine([
-          Styles.flexbox(
-            direction: FlexDirection.row,
-            justifyContent: JustifyContent.center,
-            alignItems: AlignItems.center,
-            wrap: FlexWrap.nowrap,
-          )
-        ]),
-        [
-          a([text(configModel?.title ?? "Untitled Page")], href: "/"),
-          img(src: "images/logo.png"),
-          div([], styles: Styles.flexItem(flex: Flex(grow: 1))),
-          a([Text("Blog")], href: "/posts")
-        ],
-        classes: "header");
+  Component header() {
+    return NavBar(
+      brand: NavbarBrand(children: [
+        NavbarItem(child: img(src: "/images/logo.png"), href: '/'),
+      ]),
+      menu: NavbarMenu(items: [
+        NavbarItem(
+            child: Text(configModel?.title ?? "Untitled Page"), href: "/"),
+        NavbarItem(child: Text('Blog'), href: "/posts"),
+      ]),
+    );
   }
 
-  Component _footer() {
-    return div(
-        styles: Styles.combine([
-          Styles.flexbox(
-            direction: FlexDirection.row,
-            justifyContent: JustifyContent.center,
-            alignItems: AlignItems.center,
-            wrap: FlexWrap.nowrap,
-          )
-        ]),
-        [
-          text(configModel?.owner ?? "Unknown Owner"),
-          text(" | "),
-          text(DateTime.now().year.toString()),
-        ],
-        classes: "footer");
+  Component footer() {
+    return jaspr.footer([
+      div([
+        text(configModel?.owner ?? "Unknown Owner"),
+        text(" | "),
+        text(DateTime.now().year.toString()),
+      ], classes: "content has-text-centered"),
+    ], classes: "footer");
   }
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
-    yield div([
-      _header(),
-      div(children,
-          styles: Styles.combine([
-            Styles.flexbox(
-                justifyContent: JustifyContent.start,
-                alignItems: AlignItems.center,
-                direction: FlexDirection.column),
-            Styles.flexItem(
-              flex: Flex(grow: 1),
-            ),
-          ]),
-          classes: "inner"),
-      _footer(),
-    ], id: id, classes: "layout");
+    yield div([header()], classes: "container");
+    yield section(children, classes: "container");
+    yield footer();
   }
 }

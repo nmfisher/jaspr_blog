@@ -9,6 +9,7 @@ class Template<K extends PageModel> extends StatelessComponent {
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
-    yield Text(md.markdownToHtml(page.markdown), rawHtml: true);
+    yield div([text(md.markdownToHtml(page.markdown), rawHtml: true)],
+        classes: "content");
   }
 }
