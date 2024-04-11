@@ -1,0 +1,25 @@
+name: jaspr_blog
+description: A Hugo-esque static site generator for blogs.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^3.3.3
+
+dependencies:
+  jaspr: ^0.10.0
+  jaspr_cli: 
+  jaspr_router: ^0.3.1
+  markdown:
+  image:
+  uuid:
+  args:
+  path:
+  yaml: ^3.1.2
+      
+dev_dependencies:
+  build_runner: ^2.4.0
+  jaspr_builder: ^0.10.0
+  jaspr_web_compilers: ^4.0.7+1
+  lints: ^2.1.0
+  analyzer:

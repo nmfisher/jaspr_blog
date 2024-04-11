@@ -1,0 +1,33 @@
+// import 'dart:io';
+
+// import 'package:jaspr/server.dart';
+// import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
+// import 'package:jaspr_blog/jaspr_blog/parsers/config_parser.dart';
+// import 'package:jaspr_blog/jaspr_blog/templates/template_factory.dart';
+// import 'package:jaspr_blog/jaspr_blog/models/page_model.dart';
+
+// import 'package:jaspr_router/jaspr_router.dart';
+
+// class App extends StatefulComponent {
+//   App(this.templateFactory) {}
+
+//   @override
+//   State<StatefulComponent> createState() => _AppState();
+// }
+
+// class _AppState extends State<App> {
+//   @override
+//   Iterable<Component> build(BuildContext context) sync* {
+//     yield Router(
+//         routes: component.pages.map((page) {
+//       var template = component.templateFactory.getInstance(page.layoutId, page);
+//       return Route(
+//           path: page.route,
+//           builder: (_, __) => Document(
+//               title: page.title,
+//               styles: component.styles,
+//               meta: page.metadata,
+//               body: template));
+//     }).toList());
+//   }
+// }

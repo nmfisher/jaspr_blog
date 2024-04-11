@@ -1,0 +1,7 @@
+# builders:
+#   custom_layout_factory_builder:
+#     import: "package:jaspr_blog/jaspr_blog.dart"
+#     builder_factories: ["customTemplateFactoryBuilder"]
+#     build_extensions: {"main.dart": ['main.dart']}
+#     build_to: cache
+#     auto_apply: root_package
