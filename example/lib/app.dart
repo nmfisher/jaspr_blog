@@ -33,6 +33,5 @@ class _AppState extends State<App> with PreloadStateMixin {
             configModel: blog.configModel!, children: children));
     blog.addLayout("hero",
         (page, children) => ExampleHeroCustomLayout(children: children));
-    blog.generateFrom(Directory(path.join(Directory.current.path, "content")));
   }
 }
