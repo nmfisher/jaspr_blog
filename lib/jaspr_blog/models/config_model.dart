@@ -12,8 +12,13 @@ class ConfigModel {
   factory ConfigModel.parse(File configFile) {
     var cfg = loadYaml(configFile.readAsStringSync());
     var metadata = <String, String>{};
-    for (final key in (cfg["meta"] as YamlMap).keys) {
-      metadata[key] = cfg["meta"][key] as String;
+    try {
+      for (final key in (cfg["meta"] as YamlMap).keys) {
+        metadata[key] = cfg["meta"][key] as String;
+      }
+    } catch (err) {
+      print(err);
+      // usually if meta is empty, ignore
     }
     return ConfigModel(
         title: cfg["title"],
