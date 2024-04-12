@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
-import 'package:jaspr_blog/jaspr_blog/layouts/layout.dart';
+import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_layout.dart';
 import 'package:jaspr_blog/jaspr_blog/layouts/layout_factory.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 import 'package:jaspr_blog/jaspr_blog/models/page_model.dart';
@@ -13,9 +13,16 @@ import 'package:jaspr_router/jaspr_router.dart';
 class JasprBlog {
   ConfigModel? configModel;
   final List<PageModel> pages = [];
-  final List<StyleRule> styles = [];
+  final List<StyleRule> styles;
   final _templateFactory = TemplateFactory();
   final _layoutFactory = LayoutFactory();
+
+  JasprBlog(
+      {this.styles = const [
+        StyleRule.import("/style.css"),
+        StyleRule.import(
+            "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css")
+      ]});
 
   void addTemplate(String name, TemplateBuilder builder) {
     _templateFactory.register(name, builder);
@@ -58,7 +65,8 @@ class JasprBlog {
 
     this.pages.addAll(pages);
 
-    if (directory != baseDirectory) {
+    if (directory != baseDirectory &&
+        !pages.any((element) => element.source.endsWith("index.md"))) {
       var index = PageModel.index(directory, baseDirectory, pages);
       this.pages.add(index);
     }
@@ -73,15 +81,27 @@ class JasprBlog {
     _generateFrom(directory, directory);
   }
 
+  RouteBase buildRouteForComponents(
+      String route, String title, List<Component> components,
+      {String? layoutId}) {
+    var layout =
+        _layoutFactory.getInstance(layoutId, configModel!, null, components);
+    return Route(
+        path: route,
+        builder: (_, __) => Document(
+            title: title,
+            head: [Style(styles: styles)],
+            meta: configModel?.metadata,
+            body: layout));
+  }
+
   List<RouteBase> buildRoutes() {
     return pages.map((page) {
       return Route(
           path: page.route,
           builder: (_, __) => Document(
               title: page.title,
-              head: [
-                link(href: '/styles.css', rel: 'stylesheet'),
-              ],
+              head: [Style(styles: styles)],
               meta: page.metadata,
               body: _layout(page)));
     }).toList();

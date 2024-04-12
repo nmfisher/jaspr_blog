@@ -6,7 +6,7 @@ import 'package:example/custom/full_width.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
 import 'package:jaspr_router/jaspr_router.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
 class App extends StatefulComponent {
   @override
@@ -31,10 +31,8 @@ class _AppState extends State<App> with PreloadStateMixin {
         "full-width",
         (page, children) => ExampleFullWidthCustomLayout(
             configModel: blog.configModel!, children: children));
-    blog.addLayout(
-        "hero",
-        (page, children) => ExampleHeroCustomLayout(
-            configModel: blog.configModel!, children: children));
-    blog.generateFrom(Directory(p.join(Directory.current.path, "content")));
+    blog.addLayout("hero",
+        (page, children) => ExampleHeroCustomLayout(children: children));
+    blog.generateFrom(Directory(path.join(Directory.current.path, "content")));
   }
 }

@@ -9,7 +9,15 @@ class Template<K extends PageModel> extends StatelessComponent {
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
-    yield div([text(md.markdownToHtml(page.markdown), rawHtml: true)],
-        classes: "content");
+    yield div([
+      div([], classes: "column"),
+      div([
+        h1([text(page.title)], classes: "title is-1 pb-5"),
+        div(
+          [raw(md.markdownToHtml(page.markdown))],
+        ),
+      ], classes: "column is-half"),
+      div([], classes: "column")
+    ], classes: "columns content is-size-5 has-text-dark post");
   }
 }

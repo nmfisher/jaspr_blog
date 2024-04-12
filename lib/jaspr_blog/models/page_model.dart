@@ -13,11 +13,13 @@ class PageModel {
   final String markdown;
   final DateTime? date;
   final String? blurb;
+  final String source;
 
   PageModel(
       {required this.title,
       required this.route,
       required this.markdown,
+      required this.source,
       this.metadata,
       this.layoutId,
       this.templateId,
@@ -32,6 +34,11 @@ class PageModel {
     var split = content.split("---").skip(1).toList();
 
     var doc = loadYaml(split[0]);
+
+    if (doc == null) {
+      throw Exception(
+          "Failed to parse markdown @ ${file.path} (content was ${content})");
+    }
 
     var layoutId = doc["layout"];
     var templateId = doc["template"] ?? p.basename(file.parent.path);
@@ -61,6 +68,12 @@ class PageModel {
       "og:title": title.replaceAll("&quot;", "")
     };
 
+    if (doc["meta"] != null) {
+      for (final key in doc["meta"].keys) {
+        metadata[key] = doc["meta"][key].toString();
+      }
+    }
+
     var route = doc["route"];
 
     route ??= p.basename(file.path) == "index.md"
@@ -68,6 +81,7 @@ class PageModel {
         : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "");
 
     return PageModel(
+        source: file.path,
         layoutId: layoutId,
         templateId: templateId,
         title: title,
@@ -86,8 +100,19 @@ class PageModel {
     var fullpath = directory.path.replaceAll(baseDirectory.path, "");
     var dirname = p.basename(directory.path);
     var title = dirname[0].toUpperCase() + dirname.substring(1);
+
+    var indexConfigFile = File(p.join(directory.path, "config.yaml"));
+
+    if (indexConfigFile.existsSync()) {
+      var indexConfig = loadYaml(indexConfigFile.readAsStringSync());
+      title = indexConfig["title"];
+    }
+
     return PageIndexPageModel(
-        title: title, route: fullpath, children: children);
+        source: directory.path,
+        title: title,
+        route: fullpath,
+        children: children);
   }
 }
 
@@ -96,8 +121,9 @@ class PageIndexPageModel extends PageModel {
 
   PageIndexPageModel(
       {required this.children,
+      required super.source,
       required super.title,
       required super.route,
       super.markdown = "",
-      super.layoutId = "index"}) {}
+      super.templateId = "index"}) {}
 }
