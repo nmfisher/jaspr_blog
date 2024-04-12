@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
+import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_hero_layout.dart';
 import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_layout.dart';
 import 'package:jaspr_blog/jaspr_blog/layouts/layout_factory.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
@@ -18,11 +19,21 @@ class JasprBlog {
   final _layoutFactory = LayoutFactory();
 
   JasprBlog(
-      {this.styles = const [
+      {Directory? directory,
+      this.styles = const [
         StyleRule.import("/style.css"),
         StyleRule.import(
             "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css")
-      ]});
+      ]}) {
+    directory ??= Directory(Directory.current.path + "/content");
+    var configFile = File(p.join(directory.path, "config.yaml"));
+    if (!configFile.existsSync()) {
+      throw Exception("No config.yaml found under ${directory.path}");
+    }
+    configModel = ConfigModel.parse(configFile);
+
+    _generateFrom(directory, directory);
+  }
 
   void addTemplate(String name, TemplateBuilder builder) {
     _templateFactory.register(name, builder);
@@ -70,15 +81,6 @@ class JasprBlog {
       var index = PageModel.index(directory, baseDirectory, pages);
       this.pages.add(index);
     }
-  }
-
-  void generateFrom(Directory directory) {
-    pages.clear();
-    var configFile = File(p.join(directory.path, "config.yaml"));
-    if (configFile.existsSync()) {
-      configModel = ConfigModel.parse(configFile);
-    }
-    _generateFrom(directory, directory);
   }
 
   RouteBase buildRouteForComponents(
