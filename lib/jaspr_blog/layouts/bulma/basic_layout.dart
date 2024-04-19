@@ -1,41 +1,59 @@
 import 'package:jaspr/jaspr.dart' hide footer;
 import 'package:jaspr/jaspr.dart' as jaspr;
 import 'package:jaspr_blog/jaspr_blog/layouts/bulma/navbar.dart';
+import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 
 class BasicLayout extends StatelessComponent {
   final String? title;
   final String? owner;
   final Component? logo;
   final List<Component> children;
-  final Map<String, String> navBarLinks;
+  final NavbarConfigModel navbarConfigModel;
+  final String classes;
+  final Component? footerComponent;
+  final Component? headerComponent;
 
   BasicLayout(
       {this.title = "Untitled",
       this.owner,
       required this.children,
       this.logo,
-      this.navBarLinks = const <String, String>{"Blog": "/posts"}});
+      required this.navbarConfigModel,
+      this.footerComponent,
+      this.headerComponent,
+      this.classes = ""});
 
-  Component header() {
-    return NavBar(
+  Iterable<Component> header() sync* {
+    if (headerComponent != null) {
+      yield headerComponent!;
+    }
+    yield NavBar(
+      navbarConfigModel: navbarConfigModel,
       brand: NavbarBrand(children: [
         NavbarItem(child: logo ?? text(title ?? ""), href: '/'),
       ]),
       menu: NavbarMenu(
           items: [],
-          endItems: navBarLinks.keys
+          endItems: navbarConfigModel.items
               .map(
-                (text) => NavbarItem(
-                    child: p([jaspr.text(text)], classes: "subtitle"),
-                    href: navBarLinks[text]!),
+                (item) => NavbarItem(
+                    classes: item.classes,
+                    child: p([jaspr.text(item.text)],
+                        classes: navbarConfigModel.itemClasses),
+                    href: item.route,
+                    attributes: item.attributes),
               )
               .toList()),
     );
   }
 
-  Component footer() {
-    return jaspr.footer([
+  Iterable<Component> footer() sync* {
+    if (footerComponent != null) {
+      yield footerComponent!;
+    }
+    yield jaspr.footer([
       div([
+        if (footerComponent != null) footerComponent!,
         if (owner != null) text(owner!),
         if (owner != null) text(" | "),
         text(DateTime.now().year.toString()),
@@ -45,8 +63,8 @@ class BasicLayout extends StatelessComponent {
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
-    yield div([header()], classes: "container");
-    yield section(children, classes: "container");
-    yield footer();
+    yield div(header().toList(), classes: "container");
+    yield section(children, classes: "container $classes");
+    yield* footer();
   }
 }

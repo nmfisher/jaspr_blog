@@ -12,6 +12,8 @@ import 'package:path/path.dart' as p;
 import 'package:jaspr_router/jaspr_router.dart';
 
 class JasprBlog {
+  final bool excludeDraft;
+  final Component? logo;
   ConfigModel? configModel;
   final List<PageModel> pages = [];
   final List<StyleRule> styles;
@@ -20,6 +22,8 @@ class JasprBlog {
 
   JasprBlog(
       {Directory? directory,
+      this.logo,
+      this.excludeDraft = true,
       this.styles = const [
         StyleRule.import("/style.css"),
         StyleRule.import(
@@ -47,10 +51,19 @@ class JasprBlog {
     _layoutFactory.setDefault(layoutBuilder);
   }
 
+  Component? _header;
+  void addHeaderComponent(Component component) {
+    _layoutFactory.setHeader(component);
+  }
+
+  void addFooterComponent(Component component) {
+    _layoutFactory.setFooter(component);
+  }
+
   Component _layout(PageModel page) {
     var pageTemplate = _templateFactory.getInstance(page.templateId, page);
-    var layout = _layoutFactory
-        .getInstance(page.layoutId, configModel!, null, [pageTemplate]);
+    var layout = _layoutFactory.getInstance(
+        page.layoutId, configModel!, null, [pageTemplate], logo);
     return layout;
   }
 
@@ -78,6 +91,7 @@ class JasprBlog {
 
     if (directory != baseDirectory &&
         !pages.any((element) => element.source.endsWith("index.md"))) {
+      print("Creating index for ${directory.path}");
       var index = PageModel.index(directory, baseDirectory, pages);
       this.pages.add(index);
     }
@@ -86,8 +100,8 @@ class JasprBlog {
   RouteBase buildRouteForComponents(
       String route, String title, List<Component> components,
       {String? layoutId}) {
-    var layout =
-        _layoutFactory.getInstance(layoutId, configModel!, null, components);
+    var layout = _layoutFactory.getInstance(
+        layoutId, configModel!, null, components, logo);
     return Route(
         path: route,
         builder: (_, __) => Document(
@@ -98,14 +112,21 @@ class JasprBlog {
   }
 
   List<RouteBase> buildRoutes() {
-    return pages.map((page) {
-      return Route(
-          path: page.route,
-          builder: (_, __) => Document(
-              title: page.title,
-              head: [Style(styles: styles)],
-              meta: page.metadata,
-              body: _layout(page)));
-    }).toList();
+    return pages
+        .map((page) {
+          if (excludeDraft && page.draft) {
+            return null;
+          }
+          return Route(
+              path: page.route,
+              builder: (_, __) => Document(
+                  title: page.title,
+                  head: [Style(styles: styles)],
+                  meta: page.metadata,
+                  body: _layout(page)));
+        })
+        .where((x) => x != null)
+        .cast<Route>()
+        .toList();
   }
 }

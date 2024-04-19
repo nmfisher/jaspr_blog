@@ -9,19 +9,22 @@ class BasicHeroLayout extends BasicLayout {
   BasicHeroLayout(
       {required this.heroContent,
       super.title,
+      required super.navbarConfigModel,
       super.logo,
-      super.navBarLinks,
-      required super.children});
+      required super.children,
+      super.footerComponent,
+      super.headerComponent});
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
-    yield div([header()], classes: "container");
+    yield div(header().toList(), classes: "container");
+
     yield section([
       div([
         div(heroContent, classes: "container"),
       ], classes: "hero-body"),
     ], classes: "hero container is-fullheight-with-navbar has-text-centered");
     yield section(children, classes: "container");
-    yield footer();
+    yield* footer();
   }
 }

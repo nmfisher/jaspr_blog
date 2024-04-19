@@ -14,12 +14,14 @@ class PageModel {
   final DateTime? date;
   final String? blurb;
   final String source;
+  final bool draft;
 
   PageModel(
       {required this.title,
       required this.route,
       required this.markdown,
       required this.source,
+      this.draft = true,
       this.metadata,
       this.layoutId,
       this.templateId,
@@ -89,7 +91,8 @@ class PageModel {
         date: date,
         blurb: blurb,
         markdown: markdown,
-        metadata: metadata);
+        metadata: metadata,
+        draft: doc["draft"]);
   }
 
   ///
@@ -125,5 +128,6 @@ class PageIndexPageModel extends PageModel {
       required super.title,
       required super.route,
       super.markdown = "",
-      super.templateId = "index"}) {}
+      super.templateId = "index",
+      super.draft = false}) {}
 }
