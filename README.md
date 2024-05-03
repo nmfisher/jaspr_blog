@@ -13,6 +13,8 @@ and the Flutter guide for
 
 ## A static blog generator for Dart (ala Hugo), built with Jaspr
 
+Built on top of the great [jaspr](https://github.com/schultek/jaspr) project.
+
 A Template is a class that determines how to display the content of a markdown document.
 
 A Layout is a class that determines how to arrange the entire page in which a Template is displayed (e.g. where the header/footer goes, max-width, responsive, etc).
