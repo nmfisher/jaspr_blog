@@ -7,7 +7,7 @@ environment:
   sdk: ^3.3.3
 
 dependencies:
-  jaspr: ^0.11.1
+  jaspr: ^0.12.0
   jaspr_cli: 
   jaspr_router: ^0.4.0
   markdown:
