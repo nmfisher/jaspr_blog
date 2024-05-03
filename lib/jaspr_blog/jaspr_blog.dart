@@ -97,7 +97,7 @@ class JasprBlog {
     }
   }
 
-  RouteBase buildRouteForComponents(
+  Route buildRouteForComponents(
       String route, String title, List<Component> components,
       {String? layoutId}) {
     var layout = _layoutFactory.getInstance(
@@ -111,7 +111,7 @@ class JasprBlog {
             body: layout));
   }
 
-  List<RouteBase> buildRoutes() {
+  List<Route> buildRoutes() {
     return pages
         .map((page) {
           if (excludeDraft && page.draft) {
