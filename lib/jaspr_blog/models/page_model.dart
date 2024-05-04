@@ -52,7 +52,7 @@ class PageModel {
         date = DateTime.parse(doc["date"]);
       } catch (err) {
         print("Error parsing date : $err");
-        // pass
+        // leave as null
       }
     }
 
@@ -76,11 +76,17 @@ class PageModel {
       }
     }
 
-    var route = doc["route"];
+    var route = doc["url"] ?? doc["route"];
+
+    
 
     route ??= p.basename(file.path) == "index.md"
         ? "/"
         : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "");
+
+    if (route!.endsWith("/")) {
+      route = route!.substring(0, route.length - 1);
+    }
 
     return PageModel(
         source: file.path,
@@ -92,7 +98,7 @@ class PageModel {
         blurb: blurb,
         markdown: markdown,
         metadata: metadata,
-        draft: doc["draft"]);
+        draft: doc["published"] != true);
   }
 
   ///

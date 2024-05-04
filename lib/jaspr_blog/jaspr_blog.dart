@@ -37,6 +37,7 @@ class JasprBlog {
     configModel = ConfigModel.parse(configFile);
 
     _generateFrom(directory, directory);
+    print("Generation complete from ${pages.length} pages");
   }
 
   void addTemplate(String name, TemplateBuilder builder) {
@@ -72,7 +73,11 @@ class JasprBlog {
 
     for (final child in directory.listSync()) {
       if (child is File && child.path.endsWith(".md")) {
-        pages.add(PageModel.from(child, baseDirectory));
+        try {
+          pages.add(PageModel.from(child, baseDirectory));
+        } catch (err, st) {
+          throw Exception("Error parsing markdown @ ${child.path}\n$err\n$st");
+        }
       } else if (child is Directory) {
         _generateFrom(child, baseDirectory);
       }
@@ -112,9 +117,10 @@ class JasprBlog {
   }
 
   List<Route> buildRoutes() {
-    return pages
+    var routes = pages
         .map((page) {
           if (excludeDraft && page.draft) {
+            print("Ignoring draft ${page.title}");
             return null;
           }
           return Route(
@@ -123,10 +129,13 @@ class JasprBlog {
                   title: page.title,
                   head: [Style(styles: styles)],
                   meta: page.metadata,
-                  body: _layout(page)));
+                  body: 
+                  _layout(page)
+                  ));
         })
         .where((x) => x != null)
         .cast<Route>()
         .toList();
+    return routes;
   }
 }

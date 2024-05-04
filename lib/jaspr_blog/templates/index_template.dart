@@ -22,16 +22,16 @@ class PageIndexTemplate extends Template<PageIndexPageModel> {
             .map((child) => a([
                   div([
                     div([
-                      p([text(child.title)], classes: "title is-4 mb-4"),
+                      p([text(child.title)], classes: "title is-4 mb-4 has-text-left"),
                       div([], classes: "is-flex-grow-1"),
                       p([
-                        text(DateFormat(DateFormat.YEAR_NUM_MONTH_DAY)
-                            .format(page.date ?? DateTime.now()))
-                      ], classes: "is-size-7")
-                    ], classes: "is-flex"),
+                        text(DateFormat("yyyy-MM-dd")
+                            .format(child.date ?? DateTime.now()))
+                      ], classes: "is-size-7 has-text-dark")
+                    ], classes: "is-flex is-flex-direction-column is-justify-content-flex-start is-align-items-flex-start"),
                     p([text("${child.blurb ?? ""}...")],
-                        classes: "subtitle mt-4"),
-                  ], classes: "content ${useCard ? 'card p-6' : ''} "),
+                        classes: "subtitle mt-4 mb-6 has-text-left"),
+                  ], classes: "content ${useCard ? 'card p-6 mb-4' : ''} "),
                 ], href: child.route))
             .toList(),
       ], classes: "column is-half"),

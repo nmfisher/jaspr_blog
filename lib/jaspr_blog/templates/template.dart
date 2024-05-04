@@ -12,7 +12,7 @@ class Template<K extends PageModel> extends StatelessComponent {
     yield div([
       div([], classes: "column"),
       div([
-        h1([text(page.title)], classes: "title is-1 pb-5 mt-6 mb-0"),
+        h1([text(page.title)], classes: "title is-1 p-5 mt-6 mb-0"),
         div([raw(md.markdownToHtml(page.markdown))], classes: "card p-5"),
       ], classes: "column is-two-thirds"),
       div([], classes: "column")
