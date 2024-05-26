@@ -6,7 +6,6 @@ import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 class BasicLayout extends StatelessComponent {
   final String? title;
   final String? owner;
-  final Component? logo;
   final List<Component> children;
   final NavbarConfigModel navbarConfigModel;
   final String classes;
@@ -17,7 +16,6 @@ class BasicLayout extends StatelessComponent {
       {this.title = "Untitled",
       this.owner,
       required this.children,
-      this.logo,
       required this.navbarConfigModel,
       this.footerComponent,
       this.headerComponent,
@@ -27,11 +25,19 @@ class BasicLayout extends StatelessComponent {
     if (headerComponent != null) {
       yield headerComponent!;
     }
+    var logo = NavbarItem(
+        child: a(href: '/', [
+          navbarConfigModel.logoConfig != null
+            ? 
+                img(
+                    src: navbarConfigModel.logoConfig!.url,
+                    height: navbarConfigModel.logoConfig?.height,
+                    width: navbarConfigModel.logoConfig?.width) : text(title ?? "")
+              ]) );
+
     yield NavBar(
       navbarConfigModel: navbarConfigModel,
-      brand: NavbarBrand(children: [
-        NavbarItem(child: logo ?? text(title ?? ""), href: '/'),
-      ]),
+      brand: NavbarBrand(children: [logo]),
       menu: NavbarMenu(
           items: [],
           endItems: navbarConfigModel.items
@@ -48,9 +54,6 @@ class BasicLayout extends StatelessComponent {
   }
 
   Iterable<Component> footer() sync* {
-    if (footerComponent != null) {
-      yield footerComponent!;
-    }
     yield jaspr.footer([
       div([
         if (footerComponent != null) footerComponent!,
