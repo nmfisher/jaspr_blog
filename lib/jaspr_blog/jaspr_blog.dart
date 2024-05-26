@@ -13,7 +13,6 @@ import 'package:jaspr_router/jaspr_router.dart';
 
 class JasprBlog {
   final bool excludeDraft;
-  final Component? logo;
   ConfigModel? configModel;
   final List<PageModel> pages = [];
   final List<StyleRule> styles;
@@ -22,7 +21,6 @@ class JasprBlog {
 
   JasprBlog(
       {Directory? directory,
-      this.logo,
       this.excludeDraft = true,
       this.styles = const [
         StyleRule.import("/style.css"),
@@ -63,8 +61,8 @@ class JasprBlog {
 
   Component _layout(PageModel page) {
     var pageTemplate = _templateFactory.getInstance(page.templateId, page);
-    var layout = _layoutFactory.getInstance(
-        page.layoutId, configModel!, null, [pageTemplate], logo);
+    var layout = _layoutFactory
+        .getInstance(page.layoutId, configModel!, null, [pageTemplate]);
     return layout;
   }
 
@@ -105,15 +103,14 @@ class JasprBlog {
   Route buildRouteForComponents(
       String route, String title, List<Component> components,
       {String? layoutId}) {
-    var layout = _layoutFactory.getInstance(
-        layoutId, configModel!, null, components, logo);
-    return Route(
-        path: route,
-        builder: (_, __) => Document(
-            title: title,
-            head: [Style(styles: styles)],
-            meta: configModel?.metadata,
-            body: layout));
+    var layout =
+        _layoutFactory.getInstance(layoutId, configModel!, null, components);
+    return Route(path: route, builder: (_, __) =>  div([
+            Head(
+              meta: configModel?.metadata,
+              children:[Style(styles: styles)]
+            ),
+            layout]));
   }
 
   List<Route> buildRoutes() {
@@ -123,15 +120,13 @@ class JasprBlog {
             print("Ignoring draft ${page.title}");
             return null;
           }
-          return Route(
-              path: page.route,
-              builder: (_, __) => Document(
-                  title: page.title,
-                  head: [Style(styles: styles)],
-                  meta: page.metadata,
-                  body: 
-                  _layout(page)
-                  ));
+          return Route(path: page.route, builder: (_, __) => div([
+            Head(
+              meta: page.metadata,
+              children:[Style(styles: styles)]
+            ),
+            _layout(page)]));
+
         })
         .where((x) => x != null)
         .cast<Route>()
