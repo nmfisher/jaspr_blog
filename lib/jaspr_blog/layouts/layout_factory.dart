@@ -5,18 +5,17 @@ import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_layout.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 
 typedef LayoutBuilder = Component Function(
-    ConfigModel, List<Component> children, Component? logo);
+    ConfigModel, List<Component> children);
 
 class LayoutFactory {
   final _builders = <String, LayoutBuilder>{};
 
   LayoutFactory() {
-    _default = (configModel, children, logo) => BasicLayout(
+    _default = (configModel, children) => BasicLayout(
         title: configModel.title,
         owner: configModel.owner,
         children: children,
         navbarConfigModel: configModel.navbarConfigModel,
-        logo: logo,
         footerComponent: _footer,
         headerComponent: _header);
   }
@@ -42,11 +41,11 @@ class LayoutFactory {
   }
 
   Component getInstance(String? name, ConfigModel configModel, String? id,
-      List<Component> children, Component? logo) {
+      List<Component> children) {
     var builder = _builders[name];
     if (builder != null) {
-      return builder(configModel, children, logo);
+      return builder(configModel, children);
     }
-    return _default(configModel, children, logo);
+    return _default(configModel, children);
   }
 }
