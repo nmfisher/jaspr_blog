@@ -76,11 +76,18 @@ class NavbarItem extends StatelessComponent {
   @override
   Iterable<Component> build(BuildContext context) sync* {
     if (items == null) {
-      yield a(
-          href: href ?? '',
-          classes: 'navbar-item $classes',
-          [child],
-          attributes: attributes);
+      if (href != null) {
+        yield a(
+            href: href!,
+            classes: 'navbar-item $classes',
+            [child],
+            attributes: attributes);
+      } else { 
+        yield span(
+            classes: 'navbar-item $classes',
+            [child],
+            attributes: attributes);
+      }
     } else {
       yield div(
           classes: 'navbar-item has-dropdown is-hoverable $classes',
