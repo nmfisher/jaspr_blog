@@ -1,17 +1,32 @@
 import 'dart:io';
 import 'package:yaml/yaml.dart';
 
+class LogoConfig {
+  final int? height;
+  final int? width;
+  final String url;
+
+  LogoConfig(this.height, this.width, this.url);
+
+  factory LogoConfig.fromYaml(YamlMap itemConfig) {
+    return LogoConfig(
+        itemConfig["height"], itemConfig["width"], itemConfig["url"]);
+  }
+}
+
 class NavbarLink {
-  final String route;
+  final String? id;
+  final String? route;
   final String text;
   final String classes;
   final Map<String, String> attributes;
 
-  NavbarLink(this.route, this.text, this.classes, this.attributes);
+  NavbarLink(this.id, this.route, this.text, this.classes, this.attributes);
 
   factory NavbarLink.fromYaml(YamlMap itemConfig) {
     return NavbarLink(
-        itemConfig["route"] ?? "#",
+        itemConfig["id"] ?? "",
+        itemConfig["route"],
         itemConfig["text"],
         itemConfig["classes"] ?? "",
         Map<String, String>.from(itemConfig["attributes"] ?? {}));
@@ -22,18 +37,25 @@ class NavbarConfigModel {
   final String classes;
   final String itemClasses;
   final List<NavbarLink> items;
+  final LogoConfig? logoConfig;
 
   factory NavbarConfigModel.fromYaml(YamlMap navbarConfig) {
+    LogoConfig? logoConfig;
+    if (navbarConfig.containsKey("logo")) {
+      logoConfig = LogoConfig.fromYaml(navbarConfig["logo"]);
+    }
     var classes = navbarConfig["classes"];
     var itemClasses = navbarConfig["item-classes"];
     var items = navbarConfig["items"]
         .map((l) => NavbarLink.fromYaml(l))
         .cast<NavbarLink>()
         .toList();
-    return NavbarConfigModel(classes ?? "", itemClasses ?? "", items);
+    return NavbarConfigModel(
+        classes ?? "", itemClasses ?? "", items, logoConfig);
   }
 
-  NavbarConfigModel(this.classes, this.itemClasses, this.items);
+  NavbarConfigModel(
+      this.classes, this.itemClasses, this.items, this.logoConfig);
 }
 
 class ConfigModel {
