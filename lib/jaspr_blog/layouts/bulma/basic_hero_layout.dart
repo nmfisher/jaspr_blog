@@ -10,7 +10,6 @@ class BasicHeroLayout extends BasicLayout {
       {required this.heroContent,
       super.title,
       required super.navbarConfigModel,
-      super.logo,
       required super.children,
       super.footerComponent,
       super.headerComponent});
