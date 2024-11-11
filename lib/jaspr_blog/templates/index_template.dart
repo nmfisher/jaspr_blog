@@ -9,8 +9,11 @@ class PageIndexTemplate extends Template<PageIndexPageModel> {
   final bool textCentered;
   final String? classes;
 
-  PageIndexTemplate(super.page,
-      {this.useCard = false, this.textCentered = true, this.classes});
+  PageIndexTemplate(super.page, super.blog,
+      {super.styles = null,
+      this.useCard = false,
+      this.textCentered = true,
+      this.classes});
 
   @override
   Iterable<Component> build(BuildContext context) sync* {
@@ -34,7 +37,7 @@ class PageIndexTemplate extends Template<PageIndexPageModel> {
                         classes:
                             "is-flex is-flex-direction-column is-justify-content-flex-start is-align-items-flex-start"),
                     p([text("${child.blurb ?? ""}...")],
-                        classes: "subtitle mt-4 mb-6 has-text-left"),
+                        classes: "subtitle mt-4 mb-4 has-text-left"),
                   ], classes: "content ${useCard ? 'card p-6 mb-4' : ''} "),
                 ], href: child.route))
             .toList(),

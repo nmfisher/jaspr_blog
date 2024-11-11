@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 class PageModel {
+  final String html;
   final String? layoutId;
   final String? templateId;
   final String title;
@@ -15,9 +16,11 @@ class PageModel {
   final String? blurb;
   final String source;
   final bool draft;
+  final bool isIndex;
 
   PageModel(
-      {required this.title,
+      {required this.html,
+      required this.title,
       required this.route,
       required this.markdown,
       required this.source,
@@ -26,7 +29,12 @@ class PageModel {
       this.layoutId,
       this.templateId,
       this.date,
-      this.blurb});
+      this.blurb,
+      this.isIndex = false}) {
+    if (this.route.isEmpty) {
+      throw Exception("Route cannot be empty (source $source)");
+    }
+  }
 
   ///
   /// Parse a Markdown (.md) file.
@@ -78,8 +86,6 @@ class PageModel {
 
     var route = doc["url"] ?? doc["route"];
 
-    
-
     route ??= p.basename(file.path) == "index.md"
         ? "/"
         : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "");
@@ -89,6 +95,7 @@ class PageModel {
     }
 
     return PageModel(
+        html: html,
         source: file.path,
         layoutId: layoutId,
         templateId: templateId,
@@ -118,6 +125,7 @@ class PageModel {
     }
 
     return PageIndexPageModel(
+        html: "",
         source: directory.path,
         title: title,
         route: fullpath,
@@ -133,7 +141,9 @@ class PageIndexPageModel extends PageModel {
       required super.source,
       required super.title,
       required super.route,
+      required super.html,
       super.markdown = "",
       super.templateId = "index",
-      super.draft = false}) {}
+      super.draft = false,
+      super.isIndex = true}) {}
 }

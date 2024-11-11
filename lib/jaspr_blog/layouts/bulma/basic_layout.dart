@@ -6,7 +6,7 @@ import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 class BasicLayout extends StatelessComponent {
   final String? title;
   final String? owner;
-  final List<Component> children;
+  final Component child;
   final NavbarConfigModel navbarConfigModel;
   final String classes;
   final Component? footerComponent;
@@ -15,7 +15,7 @@ class BasicLayout extends StatelessComponent {
   BasicLayout(
       {this.title = "Untitled",
       this.owner,
-      required this.children,
+      required this.child,
       required this.navbarConfigModel,
       this.footerComponent,
       this.headerComponent,
@@ -27,13 +27,13 @@ class BasicLayout extends StatelessComponent {
     }
     var logo = NavbarItem(
         child: a(href: '/', [
-          navbarConfigModel.logoConfig != null
-            ? 
-                img(
-                    src: navbarConfigModel.logoConfig!.url,
-                    height: navbarConfigModel.logoConfig?.height,
-                    width: navbarConfigModel.logoConfig?.width) : text(title ?? "")
-              ]) );
+      navbarConfigModel.logoConfig != null
+          ? img(
+              src: navbarConfigModel.logoConfig!.url,
+              height: navbarConfigModel.logoConfig?.height,
+              width: navbarConfigModel.logoConfig?.width)
+          : text(title ?? "")
+    ]));
 
     yield NavBar(
       navbarConfigModel: navbarConfigModel,
@@ -57,9 +57,9 @@ class BasicLayout extends StatelessComponent {
     yield jaspr.footer([
       div([
         if (footerComponent != null) footerComponent!,
-        if (owner != null) text(owner!),
-        if (owner != null) text(" | "),
-        text(DateTime.now().year.toString()),
+        // if (owner != null) text(owner!),
+        // if (owner != null) text(" | "),
+        // text(DateTime.now().year.toString()),
       ], classes: "content has-text-centered"),
     ], classes: "footer");
   }
@@ -67,7 +67,7 @@ class BasicLayout extends StatelessComponent {
   @override
   Iterable<Component> build(BuildContext context) sync* {
     yield div(header().toList(), classes: "container");
-    yield section(children, classes: "container $classes");
+    yield section([child], classes: "container $classes");
     yield* footer();
   }
 }

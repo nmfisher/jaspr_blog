@@ -10,7 +10,7 @@ class BasicHeroLayout extends BasicLayout {
       {required this.heroContent,
       super.title,
       required super.navbarConfigModel,
-      required super.children,
+      required super.child,
       super.footerComponent,
       super.headerComponent});
 
@@ -19,11 +19,9 @@ class BasicHeroLayout extends BasicLayout {
     yield div(header().toList(), classes: "container");
 
     yield section([
-      div([
-        div(heroContent, classes: "container"),
-      ], classes: "hero-body"),
+      div(heroContent, classes: "hero-body"),
     ], classes: "hero container is-fullheight-with-navbar has-text-centered");
-    yield section(children, classes: "container");
+    yield section([child], classes: "container");
     yield* footer();
   }
 }

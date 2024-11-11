@@ -1,32 +1,52 @@
 import 'dart:io';
-
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_blog/jaspr_blog.dart';
-import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_hero_layout.dart';
-import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_layout.dart';
-import 'package:jaspr_blog/jaspr_blog/layouts/layout_factory.dart';
 import 'package:jaspr_blog/jaspr_blog/models/config_model.dart';
 import 'package:jaspr_blog/jaspr_blog/models/page_model.dart';
+import 'package:jaspr_blog/jaspr_blog/layouts/bulma/basic_layout.dart';
 import 'package:path/path.dart' as p;
 import 'package:jaspr_router/jaspr_router.dart';
+import 'package:yaml/yaml.dart';
+
+import 'templates/index_template.dart';
+
+typedef TemplateBuilder = Template Function(PageModel model);
+typedef LayoutBuilder = Component Function(ConfigModel, Component children);
 
 class JasprBlog {
   final bool excludeDraft;
   ConfigModel? configModel;
   final List<PageModel> pages = [];
   final List<StyleRule> styles;
-  final _templateFactory = TemplateFactory();
-  final _layoutFactory = LayoutFactory();
+
+  // Template management (formerly TemplateFactory)
+  final Map<String, TemplateBuilder> _templateBuilders = {};
+
+  // Layout management (formerly LayoutFactory)
+  final Map<String, LayoutBuilder> _layoutBuilders = {};
 
   JasprBlog(
       {Directory? directory,
       this.excludeDraft = true,
+      Map<String, TemplateBuilder>? templates,
+      Map<String, LayoutBuilder>? layouts,
       this.styles = const [
-        StyleRule.import("/style.css"),
         StyleRule.import(
-            "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css")
+            "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"),
+        StyleRule.import("/style.css"),
       ]}) {
+    // Initialize template builders
+    if (templates != null) {
+      _templateBuilders.addAll(templates);
+    }
+
+    // Initialize layout builders
+    if (layouts != null) {
+      _layoutBuilders.addAll(layouts);
+    }
+
+    // Initialize content
     directory ??= Directory(Directory.current.path + "/content");
     var configFile = File(p.join(directory.path, "config.yaml"));
     if (!configFile.existsSync()) {
@@ -38,31 +58,41 @@ class JasprBlog {
     print("Generation complete from ${pages.length} pages");
   }
 
+  // Template management methods
   void addTemplate(String name, TemplateBuilder builder) {
-    _templateFactory.register(name, builder);
+    _templateBuilders[name] = builder;
   }
 
+  Template _getTemplate(String? name, PageModel model) {
+    var builder = _templateBuilders[name];
+    if (builder != null) {
+      return builder(model);
+    }
+    if (model is PageIndexPageModel) {
+      return PageIndexTemplate(model, this);
+    }
+    return Template(model, this);
+  }
+
+  // Layout management methods
   void addLayout(String name, LayoutBuilder builder) {
-    _layoutFactory.register(name, builder);
+    _layoutBuilders[name] = builder;
   }
 
-  void setDefaultLayout(LayoutBuilder layoutBuilder) {
-    _layoutFactory.setDefault(layoutBuilder);
+  Component _getLayout(
+      String? name, ConfigModel configModel, Component children) {
+    var builder = _layoutBuilders[name];
+
+    return builder!.call(configModel, children);
   }
 
-  Component? _header;
-  void addHeaderComponent(Component component) {
-    _layoutFactory.setHeader(component);
-  }
+  Component _buildPage(PageModel page) {
+    var pageTemplate = _getTemplate(page.templateId, page);
+    print("Getting page for layout id ${page.layoutId}");
 
-  void addFooterComponent(Component component) {
-    _layoutFactory.setFooter(component);
-  }
-
-  Component _layout(PageModel page) {
-    var pageTemplate = _templateFactory.getInstance(page.templateId, page);
-    var layout = _layoutFactory
-        .getInstance(page.layoutId, configModel!, null, [pageTemplate]);
+    var layout = page.layoutId == null
+        ? _layoutBuilders.values.first.call(configModel!, pageTemplate)
+        : _getLayout(page.layoutId, configModel!, pageTemplate);
     return layout;
   }
 
@@ -70,47 +100,41 @@ class JasprBlog {
     var pages = <PageModel>[];
 
     for (final child in directory.listSync()) {
-      if (child is File && child.path.endsWith(".md")) {
-        try {
-          pages.add(PageModel.from(child, baseDirectory));
-        } catch (err, st) {
-          throw Exception("Error parsing markdown @ ${child.path}\n$err\n$st");
+      if (child is File) {
+        if (child.path.endsWith(".md")) {
+          try {
+            pages.add(PageModel.from(child, baseDirectory));
+          } catch (err, st) {
+            throw Exception(
+                "Error parsing markdown @ ${child.path}\n$err\n$st");
+          }
         }
       } else if (child is Directory) {
         _generateFrom(child, baseDirectory);
       }
     }
     pages.sort((a, b) {
-      if (a.date == null) {
-        return -1;
-      }
-      if (b.date == null) {
-        return 1;
-      }
+      if (a.date == null) return -1;
+      if (b.date == null) return 1;
       return b.date!.compareTo(a.date!);
     });
 
     this.pages.addAll(pages);
 
+    print("Finishing directory ${directory.path}");
+    print(pages.map((p) => p.source).join("\n"));
+
     if (directory != baseDirectory &&
         !pages.any((element) => element.source.endsWith("index.md"))) {
-      print("Creating index for ${directory.path}");
       var index = PageModel.index(directory, baseDirectory, pages);
       this.pages.add(index);
     }
   }
 
-  Route buildRouteForComponents(
-      String route, String title, List<Component> components,
+  Route buildRouteForComponents(String route, String title, Component component,
       {String? layoutId}) {
-    var layout =
-        _layoutFactory.getInstance(layoutId, configModel!, null, components);
-    return Route(path: route, builder: (_, __) =>  div([
-            Head(
-              meta: configModel?.metadata,
-              children:[Style(styles: styles)]
-            ),
-            layout]));
+    var layout = _getLayout(layoutId, configModel!, component);
+    return Route(path: route, builder: (_, __) => div([layout]));
   }
 
   List<Route> buildRoutes() {
@@ -120,17 +144,98 @@ class JasprBlog {
             print("Ignoring draft ${page.title}");
             return null;
           }
-          return Route(path: page.route, builder: (_, __) => div([
-            Head(
-              meta: page.metadata,
-              children:[Style(styles: styles)]
-            ),
-            _layout(page)]));
-
+          if (page.route.isEmpty) {
+            throw Exception("Route cannot be empty");
+          }
+          return Route(
+              path: page.route, builder: (_, __) => div([_buildPage(page)]));
         })
         .where((x) => x != null)
         .cast<Route>()
         .toList();
     return routes;
+  }
+}
+
+class JasprBlogBuilder {
+  Directory? _directory;
+  bool _excludeDraft = true;
+  final List<StyleRule> _styles = [
+    StyleRule.import(
+        "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"),
+    StyleRule.import("/style.css"),
+  ];
+  final Map<String, TemplateBuilder> _templates = {};
+  final Map<String, LayoutBuilder> _layouts = {};
+  LayoutBuilder? _defaultLayout;
+  Component? _headerComponent;
+  Component? _footerComponent;
+
+  // Set directory
+  JasprBlogBuilder setDirectory(Directory directory) {
+    _directory = directory;
+    return this;
+  }
+
+  // Set draft exclusion
+  JasprBlogBuilder setExcludeDraft(bool exclude) {
+    _excludeDraft = exclude;
+    return this;
+  }
+
+  // Set styles
+  JasprBlogBuilder setStyles(List<StyleRule> styles) {
+    _styles.clear();
+    _styles.addAll(styles);
+    return this;
+  }
+
+  // Add individual style
+  JasprBlogBuilder addStyle(StyleRule style) {
+    _styles.add(style);
+    return this;
+  }
+
+  // Add template
+  JasprBlogBuilder setTemplate(String name, TemplateBuilder builder) {
+    _templates[name] = builder;
+    return this;
+  }
+
+  // Set layout
+  JasprBlogBuilder setLayout(String name, LayoutBuilder builder) {
+    _layouts[name] = builder;
+    return this;
+  }
+
+  // Set default layout
+  JasprBlogBuilder setDefaultLayout(LayoutBuilder builder) {
+    _defaultLayout = builder;
+    return this;
+  }
+
+  // Add header component
+  JasprBlogBuilder setHeader(Component component) {
+    _headerComponent = component;
+    return this;
+  }
+
+  // Add footer component
+  JasprBlogBuilder setFooter(Component component) {
+    _footerComponent = component;
+    return this;
+  }
+
+  // Build method to create JasprBlog instance
+  JasprBlog build() {
+    final blog = JasprBlog(
+      directory: _directory,
+      excludeDraft: _excludeDraft,
+      templates: Map.unmodifiable(_templates),
+      layouts: Map.unmodifiable(_layouts),
+      styles: List.unmodifiable(_styles),
+    );
+
+    return blog;
   }
 }
