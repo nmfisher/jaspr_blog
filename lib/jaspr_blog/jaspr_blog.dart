@@ -47,7 +47,7 @@ class JasprBlog {
     }
 
     // Initialize content
-    directory ??= Directory(Directory.current.path + "/content");
+    directory ??= Directory(p.join(Directory.current.path, "content"));
     var configFile = File(p.join(directory.path, "config.yaml"));
     if (!configFile.existsSync()) {
       throw Exception("No config.yaml found under ${directory.path}");

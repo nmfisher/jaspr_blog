@@ -88,11 +88,13 @@ class PageModel {
 
     route ??= p.basename(file.path) == "index.md"
         ? "/"
-        : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "");
-
+        : file.path.replaceAll(baseDir.path, "").replaceAll(".md", "").replaceAll("\\", "/");
+    
     if (route!.endsWith("/")) {
       route = route!.substring(0, route.length - 1);
     }
+
+    print("Returning route ${route}");
 
     return PageModel(
         html: html,
@@ -113,7 +115,7 @@ class PageModel {
   ///
   factory PageModel.index(
       Directory directory, Directory baseDirectory, List<PageModel> children) {
-    var fullpath = directory.path.replaceAll(baseDirectory.path, "");
+    var fullpath = directory.path.replaceAll(baseDirectory.path, "").replaceAll("\\", "/");
     var dirname = p.basename(directory.path);
     var title = dirname[0].toUpperCase() + dirname.substring(1);
 
